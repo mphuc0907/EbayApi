@@ -12,6 +12,7 @@ use App\Http\Requests\RegisterFormRequest;
 use App\Http\Requests\LoginFormRequest;
 use App\Http\Requests\ForgotPasswordFormRequest;
 use App\Http\Requests\ResetPasswordFormRequest;
+use App\Http\Requests\ChangePasswordFormRequest;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
@@ -137,7 +138,20 @@ class UserController extends ApiController
      *
      * @return \Illuminate\Http\Response
      */
-    public function changePassword() {
-
+    public function changePassword(ChangePasswordFormRequest $request) {
+        try {
+            $user = auth()->user();
+            // Kiểm tra mật khẩu hiện tại có đúng hay không
+            if(!Hash::check($request['old_password'], $user['password'])) {
+                return  $this->sendError('Current password is incorrect. Please check and try again.', [], 400);
+            }
+            $user->forceFill([
+                'password' => Hash::make($request['new_password'])
+            ]);
+            $user->save();
+            return $this->sendResponse(null, 'Password change successful');
+        } catch (\Exception $e) {
+            return  $this->sendError('An error has occurred. Please try again later', [], 400);
+        }
     }
 }

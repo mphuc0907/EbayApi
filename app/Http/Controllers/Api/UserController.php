@@ -163,7 +163,7 @@ class UserController extends ApiController
     public function changeInformation(ChangeInformationFormRequest $request) {
         try {
             $user = auth()->user();
-            $user['name'] = $request['name'];
+            $user['fullname'] = $request['fullname'];
             $user->save();
             return $this->sendResponse(null, 'Change information successfully');
         } catch (\Exception $e) {

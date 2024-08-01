@@ -25,7 +25,10 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'fullname',
         'password',
+        'google2fa_secret',
+        'google2fa_enabled',
     ];
 
     /**

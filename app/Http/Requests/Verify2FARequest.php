@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class RegisterFormRequest extends FormRequest
+class Verify2FARequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,10 +22,8 @@ class RegisterFormRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|min:5|max:255|regex:/^[a-zA-Z0-9]+$/|unique:users',
-            'email' => 'required|email|max:255|unique:users',
-            'password' => 'required|min:8|confirmed',
-            'password_confirmation' => 'required|same:password',
+            '2fa_secret' => 'required|min:16|max:16',
+            '2fa_otp' => 'required|digits:6',
         ];
     }
 }

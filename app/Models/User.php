@@ -29,6 +29,11 @@ class User extends Authenticatable
         'password',
         'google2fa_secret',
         'google2fa_enabled',
+        'role',
+        'phone',
+        'bank_name',
+        'front_id_card',
+        'back_id_card',
     ];
 
     /**

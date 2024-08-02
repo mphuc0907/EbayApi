@@ -14,6 +14,7 @@ use App\Http\Requests\ForgotPasswordFormRequest;
 use App\Http\Requests\ResetPasswordFormRequest;
 use App\Http\Requests\ChangePasswordFormRequest;
 use App\Http\Requests\ChangeInformationFormRequest;
+use App\Http\Requests\SaleRegisterFormRequest;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
@@ -32,6 +33,7 @@ class UserController extends ApiController
         try {
             $data = $request->all();
             $data['password'] = bcrypt($data['password']);
+            $data['role'] = config('base.role.normal');
             $user = User::create($data);
             //return $this->sendResponse($user, 'User register successfully.');
             $success['token'] =  $user->createToken($user->email, ['*'], now()->addDays(3))->plainTextToken;
@@ -166,6 +168,25 @@ class UserController extends ApiController
             $user['fullname'] = $request['fullname'];
             $user->save();
             return $this->sendResponse(null, 'Change information successfully');
+        } catch (\Exception $e) {
+            return  $this->sendError('An error has occurred. Please try again later', [], 400);
+        }
+    }
+    /**
+     * Đăng ký bán hàng
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function saleRegister(SaleRegisterFormRequest $request) {
+        try {
+            $user = auth()->user();
+            $user['phone'] = $request['phone'];
+            $user['bank_name'] = $request['bank_name'];
+            $user['front_id_card'] = $request['front_id_card'];
+            $user['back_id_card'] = $request['back_id_card'];
+            $user['role'] = config('base.role.sale');
+            $user->save();
+            return $this->sendResponse(null, 'Registration successful');
         } catch (\Exception $e) {
             return  $this->sendError('An error has occurred. Please try again later', [], 400);
         }

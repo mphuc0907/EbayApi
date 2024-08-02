@@ -15,7 +15,7 @@ class ApiController extends Controller
     public function sendResponse($result = null, $message)
     {
         $response = [
-            'success' => true,
+            'success' => 1,
             'data'    => $result,
             'message' => $message,
         ];
@@ -31,7 +31,7 @@ class ApiController extends Controller
     public function sendError($error, $errorMessages = [], $code = 404)
     {
         $response = [
-            'success' => false,
+            'success' => 0,
             'message' => $error,
         ];
 

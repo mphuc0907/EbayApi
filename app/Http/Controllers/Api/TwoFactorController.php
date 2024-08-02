@@ -6,10 +6,9 @@ use App\Http\Controllers\Api\ApiController as ApiController;
 use App\Http\Requests\Verify2FARequest;
 use App\Http\Requests\Disable2FARequest;
 use App\Http\Requests\OTP2FARequest;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use PragmaRX\Google2FAQRCode\Google2FA;
-use function Symfony\Component\HttpKernel\Profiler\all;
+use Carbon\Carbon;
 
 class TwoFactorController extends ApiController
 {
@@ -97,14 +96,25 @@ class TwoFactorController extends ApiController
         }
     }
     // Lấy mã otp
-    public function otp(Request $request)
+    public function otp(OTP2FARequest $request)
     {
         try {
             $google2fa = new Google2FA();
 
             $otp = $google2fa->getCurrentOtp($request['2fa_secret']);
+            // Thời gian hiện tại
+            $currentTimestamp = Carbon::now()->timestamp;
 
-            return $this->sendResponse(['otp' => $otp], 'OK');
+            // Thời gian tồn tại của mã OTP (thường là 30 giây)
+            $otpLifetime = 30;
+
+            // Thời gian đã trôi qua kể từ khi mã OTP được tạo
+            $timeElapsed = $currentTimestamp % $otpLifetime;
+
+            // Thời gian còn lại của mã OTP
+            $timeRemaining = $otpLifetime - $timeElapsed;
+
+            return $this->sendResponse(['otp' => $otp, 'otp_life_time' => $timeRemaining], 'OK');
         } catch (\Exception $e) {
             return  $this->sendError('An error has occurred. Please try again later', [], 400);
         }

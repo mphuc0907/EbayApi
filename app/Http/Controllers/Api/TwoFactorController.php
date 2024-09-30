@@ -34,6 +34,7 @@ class TwoFactorController extends ApiController
             return  $this->sendError('An error has occurred. Please try again later', [], 400);
         }
     }
+
     // Kích hoạt bảo mật 2 lớp
     public function active(Verify2FARequest $request)
     {
@@ -56,6 +57,36 @@ class TwoFactorController extends ApiController
             return  $this->sendError('An error has occurred. Please try again later', [], 400);
         }
     }
+    //Lấy data user đã đăng nhập
+    public function get() {
+        try {
+            $user = Auth::user();
+            $google2fa = new Google2FA();
+
+            // Lấy secret key từ cơ sở dữ liệu
+            $secret = $user->google2fa_secret; // Ví dụ, giả sử bạn lưu secret key trong cột google2fa_secret của bảng users
+
+            if (!$secret) {
+                return $this->sendError('2FA is not enabled for this user.', [], 400);
+            }
+
+            // Tạo mã QR với secret key hiện tại
+            $QR_Image = $google2fa->getQRCodeInline(
+                config('app.name'),
+                $user->email,
+                $secret
+            );
+
+            return response()->json([
+                'qr_image' => $QR_Image,
+                'secret' => $secret,
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->sendError('An error has occurred. Please try again later', [], 400);
+        }
+    }
+
     // Kiểm tra đăng nhập
     public function verify(Disable2FARequest $request)
     {

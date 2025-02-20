@@ -35,6 +35,7 @@ class Order extends Authenticatable
         'soft_use_time',
         'service_waitingdays',
         'service_product',
+        'refund_money',
         'quality',
         'kiosk_id',
         'finish_date',
@@ -43,5 +44,7 @@ class Order extends Authenticatable
         'admin_amount',
         'reseller_amount',
         'status',
+        'name_user_buy',
+        'name_ref',
     ];
 }

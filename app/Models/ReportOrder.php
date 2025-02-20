@@ -22,6 +22,7 @@ class ReportOrder extends Authenticatable
         'id_seller',
         'name_user',
         'reason',
-        'status'
+        'status',
+        'user_complain_time',
     ];
 }

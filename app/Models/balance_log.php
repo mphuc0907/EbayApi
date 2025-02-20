@@ -19,8 +19,10 @@ class balance_log extends Authenticatable
         'action_user',
         'transaction_status',
         'last_balance',
+        'topup',
         'current_balance',
         'balance',
+        'receiver_name',
         'status',
     ];
 }

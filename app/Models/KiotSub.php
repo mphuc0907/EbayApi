@@ -20,6 +20,7 @@ class KiotSub extends Authenticatable
         'status',
         'quantity',
         'soft_unit',
+        'token_API',
         'soft_url',
         'soft_life_time_price',
         'post_back',

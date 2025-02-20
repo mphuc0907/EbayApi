@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Api\ApiController as ApiController;
+use App\Models\balance;
+use App\Models\balance_log;
 use App\Models\Kiot;
 use App\Models\Order;
 use App\Models\RatingProduct;
@@ -72,11 +74,72 @@ class RatingProductController extends ApiController
             $data['user_id'] = $user['_id'];
             $data['id_parent'] = $request['id_parent'];
             $data['imageGallery'] = $gallery;
-            $data['name_user'] = $user['fullname'];
+            $data['name_user'] = $user['name'];
             $data['avatar_user'] = $user['back_id_card'];
             $data['email'] = $user['email'];
             $data['total_like'] = 0;
             $data['status'] = 0;
+
+            $order = Order::where('_id', $data['order_id'])->first();
+            $kiot = Kiot::where('_id', $order['kiosk_id'])->first();
+            if ($data['id_parent'] == null) {
+                $refund_money = $kiot['refund_person'];
+                $total_price = $order['total_price'];
+                $refund = $total_price * $refund_money / 100;
+               $status_order = $order['status'];
+               if($status_order == -1){
+                   $balance = balance::where('user_id', $user['_id'])->first();
+                   $current_balance = $balance['balance'];
+                   $balance['balance'] = $current_balance + $refund;
+                   $balance->save();
+                   //
+                   $id_balance = $balance['_id'];
+                   $action_user = 'Refund money rating from order ' . $order['order_code'];
+                   $transaction_status = 'refund';
+                   $top_up = $refund;
+                   $last_balance = $current_balance;
+                   $balance_log_current = $current_balance + $refund;
+                   $balance_log = balance_log::create([
+                       'user_id' => $user['_id'],
+                       'id_balance' => $id_balance,
+                       'action_user' => $action_user,
+                       'last_balance' => $last_balance,
+                       'transaction_status' => $transaction_status,
+                       'status' => 3,
+                       'current_balance' => $balance_log_current,
+                       'balance' => $top_up,
+                   ]);
+
+                   // trừ tiền của seller
+                   $seller = balance::where('user_id', $order['id_seller'])->first();
+                   $current_balance_seller = $seller['balance'];
+                   $seller['balance'] = $current_balance_seller - $refund;
+                   $seller->save();
+
+                   // lưu log trừ tiền của seller
+                   $id_balance_seller = $seller['_id'];
+                   $action_user_seller = 'Refund money rating from order for seller ' . $order['order_code'];
+                   $transaction_status_seller = 'refund';
+                   $top_up_seller = $refund;
+                   $last_balance_seller = $current_balance_seller;
+                   $balance_log_current_seller = $current_balance_seller - $refund;
+                   $balance_log_seller = balance_log::create([
+                       'user_id' => $order['id_seller'],
+                       'id_balance' => $id_balance_seller,
+                       'action_user' => $action_user_seller,
+                       'last_balance' => $last_balance_seller,
+                       'transaction_status' => $transaction_status_seller,
+                       'status' => 3,
+                       'current_balance' => $balance_log_current_seller,
+                       'balance' => $top_up_seller,
+                   ]);
+               }
+                // thêm trường refund vào order
+                $order['refund_money'] = (int)$refund;
+                $order->save();
+
+            }
+
 
             $rating = RatingProduct::where('user_id', $user['_id'])->where('order_id', $data['order_id'])->first();
             if ($rating) {
@@ -199,6 +262,27 @@ class RatingProductController extends ApiController
             'total_comments' => $count
         ];
         // Debug kết quả
+        return $this->sendResponse($susscer, 'Reply rating success');
+    }
+
+    public function getRatingByUserId($id)
+    {
+        $kiot = Kiot::where('user_id', $id)->get();
+
+        $ratings = RatingProduct::whereIn('kiosk_id', $kiot->pluck('_id'))
+            ->where('id_parent', null)
+            ->get();
+
+        $count = $ratings->count();
+
+        $averageStars = $ratings->avg(function($rating) {
+            return floatval($rating->star);
+        });
+        $susscer = [
+            'average_stars' => $averageStars ? round($averageStars, 1) : 0,
+            'total_comments' => $count
+        ];
+
         return $this->sendResponse($susscer, 'Reply rating success');
     }
 }

@@ -21,6 +21,7 @@ class RatingPost extends Authenticatable
       'post_owner_id',
       'parent_id',
       'donate',
-      'total_like'
+      'total_like',
+      'status'
   ];
 }

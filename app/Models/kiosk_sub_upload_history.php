@@ -17,6 +17,7 @@ class kiosk_sub_upload_history extends Authenticatable
         'kiosk_sub_id',
         'file_name',
         'result',
+        'invalid_count',
         'status',
     ];
 }

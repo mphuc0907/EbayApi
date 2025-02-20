@@ -34,6 +34,9 @@ class User extends Authenticatable
         'bank_name',
         'front_id_card',
         'back_id_card',
+        'last_activity',
+        'is_online',
+        'google_id'
     ];
 
     /**
@@ -54,6 +57,7 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
+            'last_activity' => 'datetime',
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];

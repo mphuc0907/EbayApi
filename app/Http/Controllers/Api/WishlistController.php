@@ -27,6 +27,9 @@ class WishlistController extends ApiController
     public function Addwishlist(Request $request){
         try {
             $user = auth()->user();
+            if (!$user) {
+                return $this->sendError($user, 'User not found.', 400);
+            }
             $data['kiosk_id'] = $request['kiosk_id'];
             $data['user_id'] = $user['_id'];
             // check
@@ -45,5 +48,11 @@ class WishlistController extends ApiController
         $wishlist = Wishlist::find($id);
         $wishlist->delete();
         return "Successfully removed from the favorites list.";
+    }
+
+    // tính số lượt yêu thích của 1 gian haàng
+    public function countWishlist($kiosk_id){
+        $wishlist = Wishlist::where('kiosk_id', $kiosk_id)->count();
+        return $this->sendResponse($wishlist, 'Successfully');
     }
 }

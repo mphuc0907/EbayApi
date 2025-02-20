@@ -14,6 +14,7 @@ class Promotion extends Authenticatable
     protected $table = 'promotions';
     protected $fillable = [
     'promotion_code',
+    'unlimited',
     'description',
     'amount',
     'is_admin_created',

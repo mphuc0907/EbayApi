@@ -25,7 +25,7 @@ class Kiot extends Authenticatable
         'allow_reseller',
         'id_post',
         'is_private',
-        'is_private',
+        'is_sponsorship',
         'is_duplicate',
         'short_des',
         'description',

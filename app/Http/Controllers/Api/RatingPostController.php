@@ -4,6 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Api\ApiController as ApiController;
 use App\Http\Controllers\Controller;
+use App\Models\balance;
+use App\Models\balance_log;
+use App\Models\Kiot;
+use App\Models\Order;
 use App\Models\RatingPost;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -72,7 +76,56 @@ class RatingPostController extends ApiController
             $data['donate'] = $request['donate'];
             $data['id_post'] = $request['id_post'];
             $data['parent_id'] = $request['parent_id'];
+            $data['status'] = 1;
+            if ($data['parent_id'] == null) {
+                $donate = $data['donate'];
+                $balance = balance::where('user_id', $user['_id'])->first();
+                $current_balance = $balance['balance'];
+                $balance['balance'] = $current_balance - $donate;
+                $balance->save();
+                //
+                $id_balance = $balance['_id'];
+                $action_user = 'Donate  ' . $donate . ' to post ' . $data['id_post'];
+                $transaction_status = 'donate';
+                $top_up = $donate;
+                $last_balance = $current_balance;
+                $balance_log_current = $current_balance - $donate;
+                $balance_log = balance_log::create([
+                    'user_id' => $user['_id'],
+                    'id_balance' => $id_balance,
+                    'action_user' => $action_user,
+                    'last_balance' => $last_balance,
+                    'transaction_status' => $transaction_status,
+                    'current_balance' => $balance_log_current,
+                    'status' => 3,
+                    'balance' => $top_up,
+                ]);
 
+                // cộng tiền cho người đăng bài
+                $balance_post_owner = balance::where('user_id', $data['post_owner_id'])->first();
+                $current_balance_post_owner = $balance_post_owner['balance'];
+                $balance_post_owner['balance'] = $current_balance_post_owner + $donate;
+                $balance_post_owner->save();
+                //
+                $id_balance_post_owner = $balance_post_owner['_id'];
+                $action_user_post_owner = 'Receive  ' . $donate . ' from post ' . $data['id_post'];
+                $transaction_status_post_owner = 'receive';
+                $top_up_post_owner = $donate;
+                $last_balance_post_owner = $current_balance_post_owner;
+                $balance_log_current_post_owner = $current_balance_post_owner + $donate;
+                $balance_log_post_owner = balance_log::create([
+                    'user_id' => $data['post_owner_id'],
+                    'id_balance' => $id_balance_post_owner,
+                    'action_user' => $action_user_post_owner,
+                    'last_balance' => $last_balance_post_owner,
+                    'transaction_status' => $transaction_status_post_owner,
+                    'current_balance' => $balance_log_current_post_owner,
+                    'status' => 3,
+                    'balance' => $top_up_post_owner,
+                ]);
+
+
+            }
             $rating_post = RatingPost::create($data);
 
             return $this->sendResponse(null, 'Rating post successfully.');

@@ -15,7 +15,7 @@ class ResellerController extends ApiController
     public function getResellerByKiotId($seller_id)
     {
         try {
-            $reseller = Reseller::where('sellers_id', $seller_id)->get();
+            $reseller = Reseller::where('sellers_id', $seller_id)->orderBy('created_at', 'desc')->get();
             if ($reseller) {
                 return $this->sendResponse($reseller, 'Get reseller successfully');
             } else {
@@ -23,6 +23,16 @@ class ResellerController extends ApiController
             }
         } catch (\Exception $e) {
             return $this->sendError('An error has occurred. Please try again later', [], 400);
+        }
+    }
+
+
+    public function getResellerByKiot($kiot_id){
+        $reseller = Reseller::where('kiosk_id', $kiot_id)->orderBy('created_at', 'desc')->get();
+        if ($reseller) {
+            return $this->sendResponse($reseller, 'Get reseller successfully');
+        } else {
+            return $this->sendError('Reseller not found', [], 404);
         }
     }
 
@@ -131,7 +141,7 @@ class ResellerController extends ApiController
                         return $this->sendError('Could not generate unique order code. Please try again later.', [], 400);
                     }
                     $reseller->shortened_code = $randomString;
-                    $reseller->linkresller ="&id_resller=" . $reseller->user_id . "&is_resller=1";
+                    $reseller->linkresller ="?id_resller=" . $data['_id'] . "&is_resller=1";
                 } elseif ($status == 2) {
                     if (!empty($reseller->linkresller)) {
                         $reseller->linkresller = '';
@@ -157,6 +167,19 @@ class ResellerController extends ApiController
             ->first();  // Dùng first() nếu chỉ cần lấy một kết quả
         if ($reseller) {
             return $this->sendResponse($reseller, 'Get reseller successfully');
+        } else {
+            return $this->sendError('Reseller not found', [], 404);
+        }
+    }
+    public function checkReseller($kiosk_id)
+    {
+        $user = auth()->user();
+        $user_id = $user['_id'];
+        $reseller = Reseller::where('user_id', $user_id)
+            ->where('kiosk_id', $kiosk_id)
+            ->first();
+        if ($reseller) {
+            return $this->sendResponse(true, 'Get reseller successfully');
         } else {
             return $this->sendError('Reseller not found', [], 404);
         }
